@@ -1,0 +1,111 @@
+# Shared Taskfile for Go projects
+# Required variables: USER_NAME, ARTIFACT_NAME, COMMANDS (array of command names)
+
+version: '3'
+
+includes:
+  helpers:
+    taskfile: ./Taskfile.helpers.yaml
+    internal: true
+
+tasks:
+  init:
+    desc: "Initialize the Go module and download dependencies"
+    cmds:
+      - go mod init github.com/{{.USER_NAME}}/{{.ARTIFACT_NAME}} || true
+      - go mod tidy
+      - go mod download
+
+  clean:
+    desc: "Clean up generated files and binaries"
+    cmds:
+      - |
+        {{if eq OS "windows"}}
+        {{- range $cmd := .COMMANDS }}
+        powershell -Command "if (Test-Path bin\{{$cmd}}\{{$cmd}}) { Remove-Item -Force bin\{{$cmd}}\{{$cmd}} }"
+        {{- end }}
+        {{else}}
+        {{- range $cmd := .COMMANDS }}
+        rm -f bin/{{$cmd}}/{{$cmd}}
+        {{- end }}
+        {{end}}
+      - task: helpers::delete-paths
+        vars:
+          PATHS: "cover.out mocks"
+
+  generate-mocks:
+    desc: "Generate mocks using mockery"
+    preconditions:
+      - test -f .mockery.yaml
+    cmds:
+      - mockery --config .mockery.yaml
+
+  build:
+    desc: "Build all Go binaries in the COMMANDS array"
+    deps:
+      - generate-mocks
+    cmds:
+      - |
+        {{- range $cmd := .COMMANDS }}
+        go build -o bin/{{$cmd}}/{{$cmd}} cmd/{{$cmd}}/main.go
+        {{- end }}
+
+  run:
+    desc: "Run a specific command (usage: task go:run CMD=package-checker)"
+    cmds:
+      - go run cmd/{{.CMD | default .ARTIFACT_NAME}}/main.go
+
+  debug:
+    desc: "Debug a specific command with delve (usage: task go:debug CMD=package-checker)"
+    cmds:
+      - dlv debug --allow-non-terminal-interactive=true ./cmd/{{.CMD | default .ARTIFACT_NAME}}/main.go
+
+  test:
+    desc: "Run Go tests (excluding /test/ and /mocks/)"
+    deps:
+      - generate-mocks
+    cmds:
+      - |
+        {{if eq OS "windows"}}
+        go test -v $(go list ./... | findstr /V /C:"/test/" | findstr /V /C:"/mocks/")
+        {{else}}
+        go test -v $(go list ./... | grep -v /test/ | grep -v /mocks/)
+        {{end}}
+
+  test-with-cover:
+    desc: "Run Go tests with coverage HTML report (excluding /test/ and /mocks/)"
+    cmds:
+      - |
+        {{if eq OS "windows"}}
+        go test -coverprofile cover.out -v $(go list ./... | findstr /V /C:"/test/" | findstr /V /C:"/mocks/")
+        {{else}}
+        go test -coverprofile cover.out -v $(go list ./... | grep -v /test/ | grep -v /mocks/)
+        {{end}}
+      - go tool cover -html=cover.out
+
+  ci-test:
+    desc: "Run tests with coverage for CI (atomic mode)"
+    cmds:
+      - |
+        {{if eq OS "windows"}}
+        go test -coverprofile=cover.out -covermode=atomic $(go list ./... | findstr /V /C:"/test/" | findstr /V /C:"/mocks/")
+        {{else}}
+        go test -coverprofile=cover.out -covermode=atomic $(go list ./... | grep -v /test/ | grep -v /mocks/)
+        {{end}}
+      - go tool cover -func=cover.out
+
+  fmt:
+    desc: "Format all Go files"
+    cmds:
+      - go fmt ./...
+
+  lint:
+    desc: "Run golangci-lint on the project"
+    cmds:
+      - golangci-lint run ./...
+
+  check:
+    desc: "Run formatting and linting checks"
+    deps:
+      - fmt
+      - lint

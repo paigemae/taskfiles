@@ -1,0 +1,99 @@
+# OS-specific helper tasks for inclusion in other Taskfiles
+# Internal tasks (prefixed with :) are not shown in task list
+
+version: '3'
+
+tasks:
+  # Helper: Delete a list of paths (files or directories)
+  # Usage: task helpers:delete-paths PATHS="path1 path2 path3"
+  :delete-paths:
+    internal: true
+    silent: true
+    cmds:
+      - |
+        {{if eq OS "windows"}}
+        {{- range $path := splitList " " .PATHS }}
+        powershell -Command "if (Test-Path '{{$path}}') { Remove-Item -Recurse -Force '{{$path}}' }"
+        {{- end }}
+        {{else}}
+        {{- range $path := splitList " " .PATHS }}
+        rm -rf {{$path}}
+        {{- end }}
+        {{end}}
+
+  # Helper: Delete files matching a pattern recursively
+  # Usage: task helpers:delete-pattern PATTERN="__pycache__" TYPE="d"
+  :delete-pattern:
+    internal: true
+    silent: true
+    cmds:
+      - |
+        {{if eq OS "windows"}}
+        {{if eq .TYPE "d"}}
+        powershell -Command "Get-ChildItem -Recurse -Directory -Filter '{{.PATTERN}}' | Remove-Item -Recurse -Force"
+        {{else}}
+        powershell -Command "Get-ChildItem -Recurse -File -Filter '{{.PATTERN}}' | Remove-Item -Force"
+        {{end}}
+        {{else}}
+        {{if eq .TYPE "d"}}
+        find . -type d -name '{{.PATTERN}}' -exec rm -rf {} +
+        {{else}}
+        find . -type f -name '{{.PATTERN}}' -delete
+        {{end}}
+        {{end}}
+
+  # Helper: Filter go list output to exclude test and mocks directories
+  # This returns a command string that can be used in go test commands
+  :go-packages-filter:
+    internal: true
+    silent: true
+    cmds:
+      - |
+        {{if eq OS "windows"}}
+        echo "$(go list ./... | findstr /V /C:\"/test/\" | findstr /V /C:\"/mocks/\")"
+        {{else}}
+        echo "$(go list ./... | grep -v /test/ | grep -v /mocks/)"
+        {{end}}
+
+  # Helper: Open a file in the default browser/viewer
+  # Usage: task helpers:open-file FILE="htmlcov/index.html"
+  :open-file:
+    internal: true
+    silent: true
+    cmds:
+      - |
+        {{if eq OS "windows"}}
+        powershell -Command "Start-Process '{{.FILE}}'"
+        {{else}}
+        {{if eq GOOS "darwin"}}
+        open {{.FILE}}
+        {{else}}
+        xdg-open {{.FILE}}
+        {{end}}
+        {{end}}
+
+  # Helper: Check if a file exists
+  # Usage: task helpers:file-exists FILE=".mockery.yaml"
+  :file-exists:
+    internal: true
+    silent: true
+    cmds:
+      - |
+        {{if eq OS "windows"}}
+        powershell -Command "Test-Path '{{.FILE}}'"
+        {{else}}
+        test -f {{.FILE}}
+        {{end}}
+
+  # Helper: Check if a directory exists
+  # Usage: task helpers:dir-exists DIR=".venv"
+  :dir-exists:
+    internal: true
+    silent: true
+    cmds:
+      - |
+        {{if eq OS "windows"}}
+        powershell -Command "Test-Path '{{.DIR}}'"
+        {{else}}
+        test -d {{.DIR}}
+        {{end}}
