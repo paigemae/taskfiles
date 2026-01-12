@@ -62,7 +62,8 @@ tasks:
     desc: "Run Python tests with coverage HTML report"
     cmds:
       - uv run pytest --cov --cov-report=html --cov-report=term -v
-      - task: helpers::open-file
+      - pwd
+      - task: helpers:open-file
         vars:
           FILE: "htmlcov/index.html"
 

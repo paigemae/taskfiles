@@ -13,7 +13,7 @@ tasks:
       - |
         {{if eq OS "windows"}}
         {{- range $path := splitList " " .PATHS }}
-        powershell -Command "if (Test-Path '{{$path}}') { Remove-Item -Recurse -Force '{{$path}}' }"
+        if (Test-Path '{{$path}}') { Remove-Item -Recurse -Force '{{$path}}' }
         {{- end }}
         {{else}}
         {{- range $path := splitList " " .PATHS }}
@@ -30,9 +30,9 @@ tasks:
       - |
         {{if eq OS "windows"}}
         {{if eq .TYPE "d"}}
-        powershell -Command "Get-ChildItem -Recurse -Directory -Filter '{{.PATTERN}}' | Remove-Item -Recurse -Force"
+        Get-ChildItem -Recurse -Directory -Filter '{{.PATTERN}}' | Remove-Item -Recurse -Force
         {{else}}
-        powershell -Command "Get-ChildItem -Recurse -File -Filter '{{.PATTERN}}' | Remove-Item -Force"
+        Get-ChildItem -Recurse -File -Filter '{{.PATTERN}}' | Remove-Item -Force
         {{end}}
         {{else}}
         {{if eq .TYPE "d"}}
@@ -58,14 +58,13 @@ tasks:
   # Helper: Open a file in the default browser/viewer
   # Usage: task helpers:open-file FILE="htmlcov/index.html"
   open-file:
-    internal: true
     silent: true
     cmds:
       - |
         {{if eq OS "windows"}}
-        powershell -Command "Start-Process '{{.FILE}}'"
+        Start-Process '{{.ROOT_DIR}}/{{.FILE}}'
         {{else}}
-        {{if eq GOOS "darwin"}}
+        {{if eq OS "darwin"}}
         open {{.FILE}}
         {{else}}
         xdg-open {{.FILE}}
@@ -80,7 +79,7 @@ tasks:
     cmds:
       - |
         {{if eq OS "windows"}}
-        powershell -Command "Test-Path '{{.FILE}}'"
+        Test-Path '{{.FILE}}'
         {{else}}
         test -f {{.FILE}}
         {{end}}
@@ -93,7 +92,7 @@ tasks:
     cmds:
       - |
         {{if eq OS "windows"}}
-        powershell -Command "Test-Path '{{.DIR}}'"
+        Test-Path '{{.DIR}}'
         {{else}}
         test -d {{.DIR}}
         {{end}}
