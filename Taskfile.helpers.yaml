@@ -57,7 +57,7 @@ tasks:
 
   # Helper: Open a file in the default browser/viewer
   # Usage: task helpers:open-file FILE="htmlcov/index.html"
-  :open-file:
+  open-file:
     internal: true
     silent: true
     cmds:
