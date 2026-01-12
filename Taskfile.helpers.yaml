@@ -62,7 +62,7 @@ tasks:
     cmds:
       - |
         {{if eq OS "windows"}}
-        Start-Process '{{.ROOT_DIR}}/{{.FILE}}'
+        powershell -Command "Start-Process '{{.ROOT_DIR}}\{{.FILE}}'"
         {{else}}
         {{if eq OS "darwin"}}
         open {{.FILE}}

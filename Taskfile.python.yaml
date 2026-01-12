@@ -56,12 +56,12 @@ tasks:
   test:
     desc: "Run Python tests with pytest"
     cmds:
-      - uv run pytest -v
+      - uv run python -m pytest -v
 
   test-with-cover:
     desc: "Run Python tests with coverage HTML report"
     cmds:
-      - uv run pytest --cov --cov-report=html --cov-report=term -v
+      - uv run python -m pytest --cov --cov-report=html --cov-report=term -v
       - pwd
       - task: helpers:open-file
         vars:
@@ -70,7 +70,7 @@ tasks:
   ci-test:
     desc: "Run tests with coverage for CI"
     cmds:
-      - uv run pytest --cov --cov-report=xml --cov-report=term -v
+      - uv run python -m pytest --cov --cov-report=xml --cov-report=term -v
 
   fmt:
     desc: "Format Python code with ruff"
