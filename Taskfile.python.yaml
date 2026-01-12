@@ -5,8 +5,7 @@ version: '3'
 
 includes:
   helpers:
-    taskfile: https://github.com/paigemae/taskfiles/raw/main/Taskfile.helpers.yaml
-    internal: true
+    taskfile:./Taskfile.helpers.yaml
 
 tasks:
   init:
