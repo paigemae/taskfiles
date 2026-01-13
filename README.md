@@ -46,12 +46,11 @@ Shared Taskfile for Python projects using [uv](https://github.com/astral-sh/uv).
 
 ### [Taskfile.helpers.yaml](Taskfile.helpers.yaml)
 Internal helper tasks providing cross-platform abstractions for common operations. These tasks are automatically included by the language-specific Taskfiles and are marked as internal (not shown in task lists). Includes:
-- `:delete-paths`: Delete specified paths (files or directories)
-- `:delete-pattern`: Delete files matching a pattern recursively
-- `:go-packages-filter`: Filter go list output to exclude test/mock directories
-- `:open-file`: Open a file in the default browser/viewer
-- `:file-exists`: Check if a file exists
-- `:dir-exists`: Check if a directory exists
+- `delete-paths`: Delete specified paths (files or directories)
+- `delete-pattern`: Delete files matching a pattern recursively
+- `open-file`: Open a file in the default browser/viewer
+- `file-exists`: Check if a file exists
+- `dir-exists`: Check if a directory exists
 
 **Note**: This file is not meant to be included directly in your projects; it's automatically included by the language-specific Taskfiles.
 

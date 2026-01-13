@@ -108,3 +108,16 @@ tasks:
     deps:
       - fmt
       - lint
+
+  # Helper: Filter go list output to exclude test and mocks directories
+  # This returns a command string that can be used in go test commands
+  go-packages-filter:
+    internal: true
+    silent: true
+    cmds:
+      - |
+        {{if eq OS "windows"}}
+        echo "$(go list ./... | findstr /V /C:\"/test/\" | findstr /V /C:\"/mocks/\")"
+        {{else}}
+        echo "$(go list ./... | grep -v /test/ | grep -v /mocks/)"
+        {{end}}
