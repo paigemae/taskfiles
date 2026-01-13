@@ -12,7 +12,7 @@ tasks:
       - |
         {{if eq OS "windows"}}
         {{- range $path := splitList " " .PATHS }}
-        if (Test-Path '{{$path}}') { Remove-Item -Recurse -Force '{{$path}}' }
+        if (Test-Path '{{$path}}') { Remove-Item -Recurse -Force '{{$path}}' };
         {{- end }}
         {{else}}
         {{- range $path := splitList " " .PATHS }}
