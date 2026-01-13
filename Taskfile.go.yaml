@@ -28,7 +28,7 @@ tasks:
         rm -f bin/{{$cmd}}/{{$cmd}}
         {{- end }}
         {{end}}
-      - task: helpers::delete-paths
+      - task: helpers:delete-paths
         vars:
           PATHS: "cover.out mocks"
 

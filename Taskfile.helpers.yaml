@@ -6,8 +6,7 @@ version: '3'
 tasks:
   # Helper: Delete a list of paths (files or directories)
   # Usage: task helpers:delete-paths PATHS="path1 path2 path3"
-  :delete-paths:
-    internal: true
+  delete-paths:
     silent: true
     cmds:
       - |
@@ -23,8 +22,7 @@ tasks:
 
   # Helper: Delete files matching a pattern recursively
   # Usage: task helpers:delete-pattern PATTERN="__pycache__" TYPE="d"
-  :delete-pattern:
-    internal: true
+  delete-pattern:
     silent: true
     cmds:
       - |
@@ -44,8 +42,7 @@ tasks:
 
   # Helper: Filter go list output to exclude test and mocks directories
   # This returns a command string that can be used in go test commands
-  :go-packages-filter:
-    internal: true
+  go-packages-filter:
     silent: true
     cmds:
       - |
@@ -73,8 +70,7 @@ tasks:
 
   # Helper: Check if a file exists
   # Usage: task helpers:file-exists FILE=".mockery.yaml"
-  :file-exists:
-    internal: true
+  file-exists:
     silent: true
     cmds:
       - |
@@ -86,8 +82,7 @@ tasks:
 
   # Helper: Check if a directory exists
   # Usage: task helpers:dir-exists DIR=".venv"
-  :dir-exists:
-    internal: true
+  dir-exists:
     silent: true
     cmds:
       - |

@@ -18,22 +18,22 @@ tasks:
   clean:
     desc: "Clean up generated files, cache, and build artifacts"
     cmds:
-      - task: helpers::delete-paths
+      - task: helpers:delete-paths
         vars:
           PATHS: ".venv dist build .pytest_cache .coverage htmlcov"
-      - task: helpers::delete-pattern
+      - task: helpers:delete-pattern
         vars:
           PATTERN: "__pycache__"
           TYPE: "d"
-      - task: helpers::delete-pattern
+      - task: helpers:delete-pattern
         vars:
           PATTERN: "*.pyc"
           TYPE: "f"
-      - task: helpers::delete-pattern
+      - task: helpers:delete-pattern
         vars:
           PATTERN: "*.pyo"
           TYPE: "f"
-      - task: helpers::delete-pattern
+      - task: helpers:delete-pattern
         vars:
           PATTERN: "*.egg-info"
           TYPE: "d"
