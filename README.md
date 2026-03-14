@@ -8,6 +8,8 @@ Reusable [Task](https://taskfile.dev) configurations for Go and Python projects.
 Shared Taskfile for Go projects. Provides tasks for:
 - **init**: Initialize Go module and download dependencies
 - **build**: Build all binaries defined in the `COMMANDS` array
+- **build-all**: Build for multiple platforms (Linux, macOS, Windows)
+- **install**: Build and install to ~/.local/bin
 - **run**: Run a specific command
 - **debug**: Debug a command with Delve
 - **test**: Run tests (excluding `/test/` and `/mocks/` directories)
@@ -16,6 +18,7 @@ Shared Taskfile for Go projects. Provides tasks for:
 - **fmt**: Format Go code with `go fmt`
 - **lint**: Run `golangci-lint`
 - **check**: Run formatting and linting checks
+- **tidy**: Tidy dependencies with `go mod tidy`
 - **generate-mocks**: Generate mocks using mockery
 - **clean**: Remove build artifacts and generated files
 
@@ -24,8 +27,10 @@ Shared Taskfile for Go projects. Provides tasks for:
 ### [Taskfile.python.yaml](Taskfile.python.yaml)
 Shared Taskfile for Python projects using [uv](https://github.com/astral-sh/uv). Provides tasks for:
 - **init**: Initialize Python project with uv and install dependencies
-- **install**: Install dependencies
-- **sync**: Sync dependencies from requirements files
+- **venv**: Prepare virtual environment
+- **sync**: Sync dependencies and export to requirements.txt
+- **install**: Build and install to ~/.local/bin
+- **tool-install**: Install as uv tool (alternative to install)
 - **run**: Run a specific Python module
 - **test**: Run pytest tests
 - **test-with-cover**: Run tests with HTML coverage report
@@ -37,9 +42,10 @@ Shared Taskfile for Python projects using [uv](https://github.com/astral-sh/uv).
 - **type-check**: Run type checking with mypy
 - **verify**: Run all checks (format, lint, type-check, test)
 - **build**: Build Python package distribution
+- **build-all**: Build for multiple platforms (Python is platform-independent)
+- **tidy**: Tidy dependencies and update lock file
+- **lock**: Export dependencies to requirements.txt
 - **publish**: Publish package to PyPI
-- **lock**: Generate requirements lock file
-- **upgrade**: Upgrade all dependencies
 - **clean**: Remove build artifacts, cache, and generated files
 
 **Required variables**: `USER_NAME`, `ARTIFACT_NAME`, `COMMANDS` (array)
@@ -58,7 +64,7 @@ Internal helper tasks providing cross-platform abstractions for common operation
 
 ### Including a Language-Specific Taskfile
 
-You can include these Taskfiles in your local project using [go-getter](https://github.com/hashicorp/go-getter), which is built into Task. Add an `includes` section to your local `Taskfile.yml`:
+You can include these Taskfiles in your local project using remote includes via GitLab. Add an `includes` section to your local `Taskfile.yml`:
 
 #### For Go Projects
 
@@ -70,7 +76,7 @@ includes:
     taskfile: https://github.com/paigemae/taskfiles/raw/main/Taskfile.go.yaml
 
 vars:
-  USER_NAME: your-github-username
+  USER_NAME: your-username
   ARTIFACT_NAME: your-project-name
   COMMANDS:
     - command1
@@ -90,10 +96,10 @@ version: '3'
 
 includes:
   python:
-    taskfile: https://github.com/paigemae/taskfiles/raw/main/Taskfile.python.yaml
+    taskfile: https://github.com/paigemae/taskfiles/raw/main/Taskfile.python.yaml 
 
 vars:
-  USER_NAME: your-github-username
+  USER_NAME: your-username
   ARTIFACT_NAME: your-project-name
   COMMANDS:
     - command1
@@ -164,14 +170,14 @@ task python:run CMD=my-module
 
 Both language-specific Taskfiles expect the following variables to be defined in your local `Taskfile.yml`:
 
-- **USER_NAME**: Your GitHub username (used in `go mod init`)
+- **USER_NAME**: Your username (used in `go mod init` for Go projects)
 - **ARTIFACT_NAME**: Your project name
 - **COMMANDS**: Array of command/module names (used for building multiple binaries or entry points)
 
 Example:
 ```yaml
 vars:
-  USER_NAME: paigemae
+  USER_NAME: your-username
   ARTIFACT_NAME: my-awesome-project
   COMMANDS:
     - api-server
@@ -181,7 +187,7 @@ vars:
 
 ## Local Development
 
-If you want to modify these Taskfiles locally before pushing to GitHub, you can use a local file path instead of a URL:
+If you want to modify these Taskfiles locally before pushing to your remote repository, you can use a local file path instead of a URL:
 
 ```yaml
 includes:
@@ -203,11 +209,3 @@ includes:
 - [ruff](https://github.com/astral-sh/ruff) (linter/formatter)
 - [pytest](https://pytest.org/) (testing framework)
 - [mypy](https://mypy-lang.org/) (type checking, optional)
-
-## License
-
-MIT
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.

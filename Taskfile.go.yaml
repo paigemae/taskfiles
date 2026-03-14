@@ -5,7 +5,7 @@ version: '3'
 
 includes:
   helpers:
-    taskfile: https://github.com/paigemae/taskfiles/raw/main/Taskfile.helpers.yaml
+    taskfile: Taskfile.helpers.yaml
 
 tasks:
   init:
@@ -34,8 +34,7 @@ tasks:
 
   generate-mocks:
     desc: "Generate mocks using mockery"
-    preconditions:
-      - test -f .mockery.yaml
+    if: '[ -f .mockery.yaml ]'
     cmds:
       - mockery --config .mockery.yaml
 
@@ -76,11 +75,12 @@ tasks:
     cmds:
       - |
         {{if eq OS "windows"}}
-        go test -coverprofile cover.out -v $(go list ./... | findstr /V /C:"/test/" | findstr /V /C:"/mocks/")
+        go test -v -coverprofile=coverage.out $(go list ./... | findstr /V /C:"/test/" | findstr /V /C:"/mocks/")
         {{else}}
-        go test -coverprofile cover.out -v $(go list ./... | grep -v /test/ | grep -v /mocks/)
+        go test -v -coverprofile=coverage.out $(go list ./... | grep -v /test/ | grep -v /mocks/)
         {{end}}
-      - go tool cover -html=cover.out
+      - go tool cover -html=coverage.out -o coverage.html
+      - echo "Coverage report generated{{\":\"}} coverage.html"
 
   ci-test:
     desc: "Run tests with coverage for CI (atomic mode)"
@@ -108,6 +108,34 @@ tasks:
     deps:
       - fmt
       - lint
+
+  build-all:
+    desc: "Build for multiple platforms"
+    cmds:
+      - |
+        {{- range $cmd := .COMMANDS }}
+        GOOS=linux GOARCH=amd64 go build -o bin/{{$cmd}}-linux-amd64 ./cmd/{{$cmd}}
+        GOOS=darwin GOARCH=amd64 go build -o bin/{{$cmd}}-darwin-amd64 ./cmd/{{$cmd}}
+        GOOS=darwin GOARCH=arm64 go build -o bin/{{$cmd}}-darwin-arm64 ./cmd/{{$cmd}}
+        GOOS=windows GOARCH=amd64 go build -o bin/{{$cmd}}-windows-amd64.exe ./cmd/{{$cmd}}
+        {{- end }}
+
+  install:
+    desc: "Build and install to ~/.local/bin"
+    deps:
+      - build
+    cmds:
+      - mkdir -p {{env "HOME"}}/.local/bin
+      - |
+        {{- range $cmd := .COMMANDS }}
+        cp bin/{{$cmd}}/{{$cmd}} {{env "HOME"}}/.local/bin/
+        {{- end }}
+      - echo "Installed successfully! Make sure {{env "HOME"}}/.local/bin is in your PATH."
+
+  tidy:
+    desc: "Tidy dependencies"
+    cmds:
+      - go mod tidy
 
   # Helper: Filter go list output to exclude test and mocks directories
   # This returns a command string that can be used in go test commands

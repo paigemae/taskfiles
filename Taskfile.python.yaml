@@ -5,15 +5,14 @@ version: '3'
 
 includes:
   helpers:
-    taskfile: https://github.com/paigemae/taskfiles/raw/main/Taskfile.helpers.yaml
+    taskfile: Taskfile.helpers.yaml
 
 tasks:
   init:
     desc: "Initialize Python project with uv and install dependencies"
-    cmds:
-      - uv venv
-      - uv pip install -e .
-      - uv pip install -e ".[dev]"
+    deps:
+      - venv
+      - sync
 
   clean:
     desc: "Clean up generated files, cache, and build artifacts"
@@ -39,14 +38,27 @@ tasks:
           TYPE: "d"
 
   install:
-    desc: "Install dependencies using uv"
+    desc: "Build and install to ~/.local/bin"
+    deps:
+      - build
     cmds:
-      - uv pip install -e ".[dev]"
+      - mkdir -p {{.HOME}}/.local/bin
+      - |
+        {{- range $cmd := .COMMANDS }}
+        uv tool install --force --from dist/*.whl {{$cmd}}
+        {{- end }}
+      - echo "Installed successfully! Make sure {{.HOME}}/.local/bin is in your PATH."
+
+  venv:
+    desc: "Prepare virtual environment"
+    cmds:
+      - uv venv
 
   sync:
-    desc: "Sync dependencies from requirements files"
+    desc: "Sync dependencies and export to requirements.txt"
     cmds:
-      - uv pip sync requirements.txt || uv pip install -r requirements.txt
+      - uv sync
+      - uv export --no-hashes -o requirements.txt
 
   run:
     desc: "Run a specific command (usage: task python:run CMD=main)"
@@ -111,17 +123,30 @@ tasks:
     cmds:
       - uv build
 
+  build-all:
+    desc: "Build for multiple platforms (Python is platform-independent)"
+    cmds:
+      - uv build
+  
+  tidy:
+    desc: "Tidy dependencies and update lock file"
+    cmds:
+      - uv sync --upgrade
+      - uv export --no-hashes -o requirements.txt
+
+  tool-install:
+    desc: "Install as uv tool (alternative to install)"
+    cmds:
+      - uv tool install --force .
+
   publish:
     desc: "Publish package to PyPI (use with caution)"
     cmds:
       - uv publish
 
   lock:
-    desc: "Generate requirements lock file"
+    desc: "Export dependencies to requirements.txt"
     cmds:
-      - uv pip compile pyproject.toml -o requirements.txt
+      - uv export --no-hashes -o requirements.txt
 
-  upgrade:
-    desc: "Upgrade all dependencies"
-    cmds:
-      - uv pip install --upgrade -e ".[dev]"
+
