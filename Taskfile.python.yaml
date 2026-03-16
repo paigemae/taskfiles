@@ -1,5 +1,5 @@
 # Shared Taskfile for Python projects using uv
-# Required variables: USER_NAME, ARTIFACT_NAME, COMMANDS (array of command names)
+# Required variables: ARTIFACT_NAME, COMMANDS (array of command names)
 
 version: '3'
 

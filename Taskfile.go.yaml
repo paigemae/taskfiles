@@ -1,5 +1,6 @@
 # Shared Taskfile for Go projects
-# Required variables: USER_NAME, ARTIFACT_NAME, COMMANDS (array of command names)
+# Required variables: USER_NAME, ARTIFACT_NAME
+# Optional variables: COMMANDS (array of command names; omit for library projects)
 
 version: '3'
 
@@ -19,6 +20,7 @@ tasks:
     desc: "Clean up generated files and binaries"
     cmds:
       - |
+        {{if .COMMANDS}}
         {{if eq OS "windows"}}
         {{- range $cmd := .COMMANDS }}
         powershell -Command "if (Test-Path bin\{{$cmd}}\{{$cmd}}) { Remove-Item -Force bin\{{$cmd}}\{{$cmd}} }"
@@ -27,6 +29,7 @@ tasks:
         {{- range $cmd := .COMMANDS }}
         rm -f bin/{{$cmd}}/{{$cmd}}
         {{- end }}
+        {{end}}
         {{end}}
       - task: helpers:delete-paths
         vars:
@@ -38,14 +41,23 @@ tasks:
     cmds:
       - mockery --config .mockery.yaml
 
+  verify:
+    desc: "Verify the library compiles"
+    cmds:
+      - go build ./...
+
   build:
-    desc: "Build all Go binaries in the COMMANDS array"
+    desc: "Build all Go binaries in the COMMANDS array, or verify compilation for libraries"
     deps:
       - generate-mocks
     cmds:
       - |
+        {{- if .COMMANDS }}
         {{- range $cmd := .COMMANDS }}
         go build -o bin/{{$cmd}}/{{$cmd}} cmd/{{$cmd}}/main.go
+        {{- end }}
+        {{- else }}
+        go build ./...
         {{- end }}
 
   run:
@@ -113,11 +125,18 @@ tasks:
     desc: "Build for multiple platforms"
     cmds:
       - |
+        {{- if .COMMANDS }}
         {{- range $cmd := .COMMANDS }}
         GOOS=linux GOARCH=amd64 go build -o bin/{{$cmd}}-linux-amd64 ./cmd/{{$cmd}}
         GOOS=darwin GOARCH=amd64 go build -o bin/{{$cmd}}-darwin-amd64 ./cmd/{{$cmd}}
         GOOS=darwin GOARCH=arm64 go build -o bin/{{$cmd}}-darwin-arm64 ./cmd/{{$cmd}}
         GOOS=windows GOARCH=amd64 go build -o bin/{{$cmd}}-windows-amd64.exe ./cmd/{{$cmd}}
+        {{- end }}
+        {{- else }}
+        GOOS=linux GOARCH=amd64 go build ./...
+        GOOS=darwin GOARCH=amd64 go build ./...
+        GOOS=darwin GOARCH=arm64 go build ./...
+        GOOS=windows GOARCH=amd64 go build ./...
         {{- end }}
 
   install:
@@ -125,12 +144,16 @@ tasks:
     deps:
       - build
     cmds:
-      - mkdir -p {{env "HOME"}}/.local/bin
       - |
+        {{- if .COMMANDS }}
+        mkdir -p {{env "HOME"}}/.local/bin
         {{- range $cmd := .COMMANDS }}
         cp bin/{{$cmd}}/{{$cmd}} {{env "HOME"}}/.local/bin/
         {{- end }}
-      - echo "Installed successfully! Make sure {{env "HOME"}}/.local/bin is in your PATH."
+        echo "Installed successfully! Make sure {{env "HOME"}}/.local/bin is in your PATH."
+        {{- else }}
+        echo "No commands to install (library project)."
+        {{- end }}
 
   tidy:
     desc: "Tidy dependencies"
