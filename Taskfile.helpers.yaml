@@ -76,3 +76,15 @@ tasks:
         {{ else }}
         test -d {{.DIR}}
         {{ end }}
+
+  # Helper: Tag and create a GitHub release
+  # Usage: task helpers:release VERSION=v1.2.0
+  release:
+    desc: Tag and create a GitHub release
+    requires:
+      vars: [VERSION]
+    cmds:
+      - git tag {{.VERSION}}
+      - git push origin {{.VERSION}}
+      - gh release create {{.VERSION}} --title "{{.VERSION}}" --generate-notes
+

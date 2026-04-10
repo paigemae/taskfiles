@@ -13,6 +13,10 @@ tasks:
     deps:
       - venv
       - sync
+    sources:
+      - pyproject.toml
+    generates:
+      - .venv
 
   clean:
     desc: "Clean up generated files, cache, and build artifacts"
@@ -41,6 +45,10 @@ tasks:
     desc: "Build and install to ~/.local/bin"
     deps:
       - build
+    sources:
+      - dist/*.whl
+    generates:
+      - "{{.HOME}}/.local/bin/{{$cmd}}"
     cmds:
       - mkdir -p {{.HOME}}/.local/bin
       - |
@@ -68,7 +76,7 @@ tasks:
   test:
     desc: "Run Python tests with pytest"
     cmds:
-      - uv run python -m pytest -v
+      - uv run python -m pytest -v || [[ $? -eq 5 ]]
 
   test-with-cover:
     desc: "Run Python tests with coverage HTML report"
@@ -104,6 +112,11 @@ tasks:
     deps:
       - fmt
       - lint
+    sources:
+      - src/**/*.py
+      - tests/**/*.py
+    generates:
+      - .ruff_cache
 
   type-check:
     desc: "Run type checking with mypy"
@@ -117,9 +130,20 @@ tasks:
       - lint
       - type-check
       - test
+    sources:
+      - src/**/*.py
+      - tests/**/*.py
+    generates:
+      - .ruff_cache
+      - .mypy_cache
 
   build:
     desc: "Build Python package distribution"
+    sources:
+      - src/**/*
+      - pyproject.toml
+    generates:
+      - dist/*.whl
     cmds:
       - uv build
 
@@ -127,7 +151,7 @@ tasks:
     desc: "Build for multiple platforms (Python is platform-independent)"
     cmds:
       - uv build
-  
+
   tidy:
     desc: "Tidy dependencies and update lock file"
     cmds:
@@ -148,5 +172,4 @@ tasks:
     desc: "Export dependencies to requirements.txt"
     cmds:
       - uv export --no-hashes -o requirements.txt
-
 

@@ -50,6 +50,12 @@ tasks:
     desc: "Build all Go binaries in the COMMANDS array, or verify compilation for libraries"
     deps:
       - generate-mocks
+    sources:
+      - ./**/*.go
+      - go.mod
+      - go.sum
+    generates:
+      - bin/**/*
     cmds:
       - |
         {{- if .COMMANDS }}
@@ -71,44 +77,50 @@ tasks:
       - dlv debug --allow-non-terminal-interactive=true ./cmd/{{.CMD | default .ARTIFACT_NAME}}/main.go
 
   test:
-    desc: "Run Go tests (excluding /test/ and /mocks/)"
+    desc: "Run Go tests"
     deps:
       - generate-mocks
+    sources:
+      - ./**/*.go
+      - go.mod
+      - go.sum
+    generates:
+      - coverage.out
     cmds:
       - |
         {{if eq OS "windows"}}
-        go test -v $(go list ./... | findstr /V /C:"/test/" | findstr /V /C:"/mocks/")
+        where gotestsum >nul 2>&1 && (gotestsum --format testdox ./...) || (go test -v ./...)
         {{else}}
-        go test -v $(go list ./... | grep -v /test/ | grep -v /mocks/)
+        if command -v gotestsum &> /dev/null; then gotestsum --format testdox ./...; else go test -v ./...; fi
         {{end}}
 
   test-with-cover:
-    desc: "Run Go tests with coverage HTML report (excluding /test/ and /mocks/)"
+    desc: "Run Go tests with coverage HTML report"
     cmds:
-      - |
-        {{if eq OS "windows"}}
-        go test -v -coverprofile=coverage.out $(go list ./... | findstr /V /C:"/test/" | findstr /V /C:"/mocks/")
-        {{else}}
-        go test -v -coverprofile=coverage.out $(go list ./... | grep -v /test/ | grep -v /mocks/)
-        {{end}}
+      - go test -v -coverprofile=coverage.out ./...
       - go tool cover -html=coverage.out -o coverage.html
       - echo "Coverage report generated{{\":\"}} coverage.html"
 
   ci-test:
     desc: "Run tests with coverage for CI (atomic mode)"
     cmds:
-      - |
-        {{if eq OS "windows"}}
-        go test -coverprofile=cover.out -covermode=atomic $(go list ./... | findstr /V /C:"/test/" | findstr /V /C:"/mocks/")
-        {{else}}
-        go test -coverprofile=cover.out -covermode=atomic $(go list ./... | grep -v /test/ | grep -v /mocks/)
-        {{end}}
+      - go test -coverprofile=cover.out -covermode=atomic ./...
       - go tool cover -func=cover.out
 
   fmt:
     desc: "Format all Go files"
     cmds:
       - go fmt ./...
+
+  fix-dryrun:
+    desc: "Display the fixes that would be applied with 'go fix' without making the changes."
+    cmds:
+      - go fix --diff ./...
+
+  fix:
+    desc: "Fix Go files"
+    cmds:
+      - go fix ./...
 
   lint:
     desc: "Run golangci-lint on the project"
@@ -159,16 +171,3 @@ tasks:
     desc: "Tidy dependencies"
     cmds:
       - go mod tidy
-
-  # Helper: Filter go list output to exclude test and mocks directories
-  # This returns a command string that can be used in go test commands
-  go-packages-filter:
-    internal: true
-    silent: true
-    cmds:
-      - |
-        {{if eq OS "windows"}}
-        echo "$(go list ./... | findstr /V /C:\"/test/\" | findstr /V /C:\"/mocks/\")"
-        {{else}}
-        echo "$(go list ./... | grep -v /test/ | grep -v /mocks/)"
-        {{end}}
