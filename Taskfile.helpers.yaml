@@ -86,5 +86,5 @@ tasks:
     cmds:
       - git tag {{.VERSION}}
       - git push origin {{.VERSION}}
-      - gh release create {{.VERSION}} --title "{{.VERSION}}" --generate-notes
+      - gh-release {{.VERSION}} --title "{{.VERSION}}" --generate-notes
 
