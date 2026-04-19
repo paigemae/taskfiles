@@ -66,6 +66,13 @@ tasks:
         go build ./...
         {{- end }}
 
+  vet:
+    desc: "Analyzes source code for suspicious constructs, bugs, or errors that the compiler overlooks"
+    deps:
+      - build
+    cmds:
+      - go vet ./...
+
   run:
     desc: "Run a specific command (usage: task go:run CMD=package-checker)"
     cmds:
