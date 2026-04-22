@@ -60,7 +60,7 @@ tasks:
       - |
         {{- if .COMMANDS }}
         {{- range $cmd := .COMMANDS }}
-        go build -o bin/{{$cmd}}/{{$cmd}} cmd/{{$cmd}}/main.go
+        go build -o bin/{{$cmd}}/{{$cmd}} ./cmd/{{$cmd}}
         {{- end }}
         {{- else }}
         go build ./...
@@ -76,12 +76,12 @@ tasks:
   run:
     desc: "Run a specific command (usage: task go:run CMD=package-checker)"
     cmds:
-      - go run cmd/{{.CMD | default .ARTIFACT_NAME}}/main.go
+      - go run ./cmd/{{.CMD | default .ARTIFACT_NAME}}
 
   debug:
     desc: "Debug a specific command with delve (usage: task go:debug CMD=package-checker)"
     cmds:
-      - dlv debug --allow-non-terminal-interactive=true ./cmd/{{.CMD | default .ARTIFACT_NAME}}/main.go
+      - dlv debug --allow-non-terminal-interactive=true ./cmd/{{.CMD | default .ARTIFACT_NAME}}
 
   test:
     desc: "Run Go tests"
