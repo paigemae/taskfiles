@@ -76,7 +76,7 @@ tasks:
   run:
     desc: "Run a specific command (usage: task go:run CMD=package-checker)"
     cmds:
-      - go run ./cmd/{{.CMD | default .ARTIFACT_NAME}}
+      - go run ./cmd/{{.CMD | default .ARTIFACT_NAME}} {{.CLI_ARGS}}
 
   debug:
     desc: "Debug a specific command with delve (usage: task go:debug CMD=package-checker)"
