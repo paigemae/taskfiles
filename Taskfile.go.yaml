@@ -38,6 +38,12 @@ tasks:
   generate-mocks:
     desc: "Generate mocks using mockery"
     if: '[ -f .mockery.yaml ]'
+    sources:
+      - .mockery.yaml
+      - ./**/*.go
+      - exclude: ./**/mocks/**
+    generates:
+      - ./**/mocks/**
     cmds:
       - mockery --config .mockery.yaml
 
@@ -121,11 +127,15 @@ tasks:
 
   fix-dryrun:
     desc: "Display the fixes that would be applied with 'go fix' without making the changes."
+    deps:
+      - generate-mocks
     cmds:
       - go fix --diff ./...
 
   fix:
     desc: "Fix Go files"
+    deps:
+      - generate-mocks
     cmds:
       - go fix ./...
 
