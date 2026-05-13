@@ -71,7 +71,7 @@ tasks:
   run:
     desc: "Run a specific command (usage: task python:run CMD=main)"
     cmds:
-      - uv run python -m {{.CMD | default .ARTIFACT_NAME}} {{.CLI_ARGS}}
+      - uv run {{.CMD | default .ARTIFACT_NAME}} {{.CLI_ARGS}}
 
   test:
     desc: "Run Python tests with pytest"

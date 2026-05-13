@@ -171,6 +171,7 @@ tasks:
   install:
     desc: "Install to $GOBIN (or $GOPATH/bin) via go install"
     deps:
+      - check
       - build
     cmds:
       - |
