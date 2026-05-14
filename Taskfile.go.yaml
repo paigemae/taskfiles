@@ -169,16 +169,18 @@ tasks:
         {{- end }}
 
   install:
-    desc: "Install to $GOBIN (or $GOPATH/bin) via go install"
+    desc: "Build and install to ~/.local/bin"
     deps:
       - check
       - build
     cmds:
       - |
         {{- if .COMMANDS }}
+        mkdir -p {{env "HOME"}}/.local/bin
         {{- range $cmd := .COMMANDS }}
-        go install ./cmd/{{$cmd}}
+        cp bin/{{$cmd}}/{{$cmd}} {{env "HOME"}}/.local/bin/
         {{- end }}
+        echo "Installed successfully! Make sure {{env "HOME"}}/.local/bin is in your PATH."
         {{- else }}
         echo "No commands to install (library project)."
         {{- end }}
